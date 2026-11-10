@@ -1,0 +1,106 @@
+"""Import every model so `Base.metadata` is complete (used by Alembic)."""
+
+from app.models.auth import (
+    OtpVerification,
+    Permission,
+    RefreshToken,
+    Role,
+    StaffProfile,
+    User,
+    role_permissions,
+    user_roles,
+)
+from app.models.base import Base
+from app.models.catalog import (
+    Attribute,
+    Brand,
+    Category,
+    Manufacturer,
+    Product,
+    ProductAttributeValue,
+    ProductImage,
+    ProductVariant,
+    product_categories,
+)
+from app.models.cms import Faq, HomepageSection, Page
+from app.models.commerce import Cart, CartItem, Invoice, Order, OrderItem, OrderItemBatch, OrderStatusHistory
+from app.models.customer import Customer, CustomerAddress, CustomerProfile, WishlistItem
+from app.models.delivery import DeliveryAssignment, DeliveryPartner, ServiceablePincode
+from app.models.inventory import Inventory, InventoryBatch, PurchaseOrder, PurchaseOrderItem, StockMovement, Supplier
+from app.models.marketing import (
+    Banner,
+    Coupon,
+    CouponUsage,
+    NewsletterSubscriber,
+    PromotionalCampaign,
+    Testimonial,
+    coupon_categories,
+    coupon_products,
+)
+from app.models.payment import Payment, PaymentWebhook, Refund
+from app.models.prescription import Prescription, PrescriptionFile, PrescriptionOrderItem, PrescriptionReview
+from app.models.system import AuditLog, DocumentSequence, Notification, SearchQuery, Setting
+
+__all__ = [
+    "Attribute",
+    "AuditLog",
+    "Banner",
+    "Base",
+    "Brand",
+    "Cart",
+    "CartItem",
+    "Category",
+    "Coupon",
+    "CouponUsage",
+    "Customer",
+    "CustomerAddress",
+    "CustomerProfile",
+    "DeliveryAssignment",
+    "DeliveryPartner",
+    "DocumentSequence",
+    "Faq",
+    "HomepageSection",
+    "Inventory",
+    "InventoryBatch",
+    "Invoice",
+    "Manufacturer",
+    "NewsletterSubscriber",
+    "Notification",
+    "Order",
+    "OrderItem",
+    "OrderItemBatch",
+    "OrderStatusHistory",
+    "OtpVerification",
+    "Page",
+    "Payment",
+    "PaymentWebhook",
+    "Permission",
+    "Prescription",
+    "PrescriptionFile",
+    "PrescriptionOrderItem",
+    "PrescriptionReview",
+    "Product",
+    "ProductAttributeValue",
+    "ProductImage",
+    "ProductVariant",
+    "PromotionalCampaign",
+    "PurchaseOrder",
+    "PurchaseOrderItem",
+    "RefreshToken",
+    "Refund",
+    "Role",
+    "SearchQuery",
+    "ServiceablePincode",
+    "Setting",
+    "StaffProfile",
+    "StockMovement",
+    "Supplier",
+    "Testimonial",
+    "User",
+    "WishlistItem",
+    "coupon_categories",
+    "coupon_products",
+    "product_categories",
+    "role_permissions",
+    "user_roles",
+]
