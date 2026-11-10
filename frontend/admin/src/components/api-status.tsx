@@ -14,18 +14,18 @@ export function ApiStatus() {
     retry: false,
   });
 
-  if (isPending) return <p className="text-sm text-slate-500">Checking backend…</p>;
+  if (isPending) return <p className="text-sm text-muted-foreground">Checking backend…</p>;
 
   const ok = !isError && data?.status === "ok";
   return (
     <div className="flex items-center gap-3 text-sm" role="status">
-      <span className={ok ? "h-2.5 w-2.5 rounded-full bg-emerald-500" : "h-2.5 w-2.5 rounded-full bg-rose-500"} />
+      <span className={ok ? "h-2.5 w-2.5 rounded-full bg-foreground" : "h-2.5 w-2.5 rounded-full bg-primary"} />
       <span>{ok ? "Backend connected" : "Backend unavailable"}</span>
       <button
         type="button"
         onClick={() => refetch()}
         disabled={isFetching}
-        className="rounded-md border border-slate-300 px-2 py-1 text-xs hover:bg-slate-50 disabled:opacity-50"
+        className="rounded-md border border-border px-2 py-1 text-xs hover:bg-accent disabled:opacity-50"
       >
         {isFetching ? "Checking…" : "Recheck"}
       </button>
