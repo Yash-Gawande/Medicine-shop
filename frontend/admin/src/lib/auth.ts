@@ -7,7 +7,7 @@ interface AuthState {
   /** "loading" until the first refresh attempt settles. */
   status: "loading" | "authenticated" | "anonymous";
   bootstrap: () => Promise<void>;
-  login: (identifier: string, password: string) => Promise<AuthUser>;
+  login: (identifier: string, password: string, rememberMe?: boolean) => Promise<AuthUser>;
   logout: () => Promise<void>;
   can: (permission: string) => boolean;
 }
@@ -32,11 +32,11 @@ export const useAuth = create<AuthState>((set, get) => {
       if (res) accept(res);
       else clear();
     },
-    login: async (identifier, password) =>
+    login: async (identifier, password, rememberMe = true) =>
       accept(
         await apiFetch<TokenResponse>("/auth/login", {
           method: "POST",
-          body: JSON.stringify({ identifier, password }),
+          body: JSON.stringify({ identifier, password, remember_me: rememberMe }),
           skipRefresh: true,
         }),
       ),

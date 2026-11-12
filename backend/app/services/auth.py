@@ -35,6 +35,7 @@ class Session:
     access_token: str
     expires_in: int
     refresh_token: str
+    remember: bool = True  # False -> browser-session cookie and a 1-day server-side lifetime
 
 
 def user_permissions(user: User) -> set[str]:
@@ -45,21 +46,32 @@ def _now() -> datetime:
     return datetime.now(UTC)
 
 
-async def _issue(db: AsyncSession, user: User, *, family_id: uuid.UUID | None, ip: str | None, ua: str | None):
+SESSION_TOKEN_TTL = timedelta(days=1)
+
+
+async def _issue(
+    db: AsyncSession,
+    user: User,
+    *,
+    family_id: uuid.UUID | None,
+    ip: str | None,
+    ua: str | None,
+    remember: bool = True,
+):
     s = get_settings()
     raw, digest = new_refresh_token()
     row = RefreshToken(
         user_id=user.id,
         token_hash=digest,
         family_id=family_id or uuid.uuid4(),
-        expires_at=_now() + timedelta(days=s.refresh_token_expire_days),
+        expires_at=_now() + (timedelta(days=s.refresh_token_expire_days) if remember else SESSION_TOKEN_TTL),
         user_agent=(ua or "")[:255] or None,
         ip_address=ip,
     )
     db.add(row)
     await db.flush()
     access, ttl = create_access_token(user.id, user.user_type.value)
-    return row, Session(user=user, access_token=access, expires_in=ttl, refresh_token=raw)
+    return row, Session(user=user, access_token=access, expires_in=ttl, refresh_token=raw, remember=remember)
 
 
 async def register_customer(db: AsyncSession, data: RegisterRequest, *, ip: str | None, ua: str | None) -> Session:
@@ -95,7 +107,9 @@ async def register_customer(db: AsyncSession, data: RegisterRequest, *, ip: str 
     return session
 
 
-async def login(db: AsyncSession, identifier: str, password: str, *, ip: str | None, ua: str | None) -> Session:
+async def login(
+    db: AsyncSession, identifier: str, password: str, *, ip: str | None, ua: str | None, remember: bool = True
+) -> Session:
     s = get_settings()
     ident = identifier.strip()
     if "@" in ident:
@@ -128,7 +142,7 @@ async def login(db: AsyncSession, identifier: str, password: str, *, ip: str | N
     user.last_login_at = now
     if password_needs_rehash(user.password_hash):
         user.password_hash = hash_password(password)
-    _, session = await _issue(db, user, family_id=None, ip=ip, ua=ua)
+    _, session = await _issue(db, user, family_id=None, ip=ip, ua=ua, remember=remember)
     await db.commit()
     return session
 
@@ -152,7 +166,8 @@ async def refresh(db: AsyncSession, raw_token: str | None, *, ip: str | None, ua
     if not user or user.deleted_at or user.status in _LOGIN_BLOCKED:
         raise AuthenticationError("Account unavailable", code="account_disabled")
 
-    new_row, session = await _issue(db, user, family_id=row.family_id, ip=ip, ua=ua)
+    remember = (row.expires_at - row.created_at) > timedelta(days=2)  # inherit the original choice
+    new_row, session = await _issue(db, user, family_id=row.family_id, ip=ip, ua=ua, remember=remember)
     row.revoked_at = _now()
     row.replaced_by_id = new_row.id
     await db.commit()

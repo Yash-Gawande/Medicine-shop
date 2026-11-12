@@ -146,3 +146,20 @@ async def test_superadmin_password_only_login(api, db):
     user = r.json()["user"]
     assert user["roles"] == ["super_admin"] and user["user_type"] == "staff"
     assert "roles:manage" in user["permissions"]
+
+
+async def test_remember_me_false_gives_session_cookie_and_survives_refresh(api, db):
+    await register(api)
+    api.cookies.clear()
+    r = await api.post(f"{BASE}/login", json={"identifier": "a@example.com", "password": PW, "remember_me": False})
+    assert r.status_code == 200
+    assert "max-age" not in r.headers["set-cookie"].lower()
+    rows = (await db.scalars(select(RefreshToken))).all()
+    assert any((r.expires_at - r.created_at).days <= 1 for r in rows)  # the session-only token
+
+    r = await api.post(f"{BASE}/refresh")
+    assert r.status_code == 200 and "max-age" not in r.headers["set-cookie"].lower()
+
+    api.cookies.clear()
+    r = await api.post(f"{BASE}/login", json={"identifier": "a@example.com", "password": PW})
+    assert "max-age" in r.headers["set-cookie"].lower()

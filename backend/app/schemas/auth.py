@@ -40,6 +40,7 @@ class RegisterRequest(BaseModel):
 class LoginRequest(BaseModel):
     identifier: str = Field(min_length=3, max_length=255, description="Email or mobile number")
     password: str = Field(min_length=1, max_length=128)
+    remember_me: bool = True
 
 
 class UserOut(BaseModel):

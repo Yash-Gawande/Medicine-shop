@@ -28,7 +28,7 @@ function renderLogin() {
 async function submit() {
   await userEvent.type(screen.getByLabelText("Email"), "a@example.com");
   await userEvent.type(screen.getByLabelText("Password"), "Passw0rd1");
-  await userEvent.click(screen.getByRole("button", { name: "Log in" }));
+  await userEvent.click(screen.getByRole("button", { name: "Sign in" }));
 }
 
 beforeEach(() => {

@@ -31,7 +31,7 @@ def _respond(response: Response, session: svc.Session) -> TokenResponse:
     response.set_cookie(
         REFRESH_COOKIE,
         session.refresh_token,
-        max_age=s.refresh_token_expire_days * 86400,
+        max_age=s.refresh_token_expire_days * 86400 if session.remember else None,
         httponly=True,
         secure=s.environment not in (Environment.DEVELOPMENT, Environment.TEST),
         samesite="lax",
@@ -50,7 +50,12 @@ async def register(data: RegisterRequest, request: Request, response: Response, 
 @router.post("/login", response_model=TokenResponse)
 async def login(data: LoginRequest, request: Request, response: Response, db: AsyncSession = Depends(get_db)):
     session = await svc.login(
-        db, data.identifier, data.password, ip=client_ip(request), ua=request.headers.get("user-agent")
+        db,
+        data.identifier,
+        data.password,
+        ip=client_ip(request),
+        ua=request.headers.get("user-agent"),
+        remember=data.remember_me,
     )
     return _respond(response, session)
 
